@@ -33,3 +33,13 @@ CREATE TABLE reservations (
   property_id INTEGER REFERENCES properties(id),
   guest_id INTEGER REFERENCES users(id)
 );
+
+DROP TABLE IF EXISTS property_reviews CASCADE;
+CREATE TABLE property_reviews (
+  id SERIAL PRIMARY KEY,
+  guest_id INTEGER REFERENCES users(id),
+  property_id INTEGER REFERENCES properties(id),
+  reservation_id INTEGER REFERENCES reservations(id),
+  rating SMALLINT,
+  message TEXT
+);
