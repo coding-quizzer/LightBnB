@@ -13,8 +13,8 @@ VALUES (1, 'Hobbit Hole','description', 'https://images.unsplash.com/photo-16276
 
 INSERT INTO reservations (start_date, end_date, property_id, guest_id)
 VALUES ('2002-12-16', '2003-02-28', 1, 1),
-('2008-03-17', '2003-08-23', 2, 3),
-('2009-12-16', '2003-06-03', 3, 2);
+('2008-03-17', '2008-08-23', 2, 3),
+('2009-12-16', '2010-06-03', 3, 2);
 
 INSERT INTO property_reviews (guest_id, property_id, reservation_id, rating, message)
 VALUES (1, 1, 1, 4, 'message'),
