@@ -108,18 +108,88 @@ exports.getAllReservations = getAllReservations;
  */
 const getAllProperties = function(options, limit = 10) {
 
-  const queryParams = [options.city.toLowerCase(), options.minimum_price_per_night * 100, options.maximum_price_per_night * 100, options.minimum_rating, limit];
+  const queryParams = [limit];
+
+  const optionEntries = Object.entries(options);
+  const optionSetEntries = optionEntries.filter(entry => {return entry[1] && entry[0] !== 'minimum_rating'});
+  const validOptions = Object.fromEntries(optionSetEntries);
+  // I am not interested in minimum rating because it is used in a different part of the query.
+  // delete validOptions.minimum_rating;
+  console.log('keys', Object.keys(validOptions), 'length', Object.keys(validOptions).length);
   
-  let queryString = `SELECT DISTINCT properties.*,  AVG(property_reviews.rating) AS average_rating
-  FROM properties
-  JOIN property_reviews ON properties.id = property_id
-  WHERE LOWER(city) LIKE concat('%', $1::text, '%')
-  AND cost_per_night > $2
-  AND cost_per_night < $3
-  GROUP BY properties.id
-  HAVING AVG(property_reviews.rating) >= $4
-  ORDER BY cost_per_night
-  LIMIT $5;`
+  const validOptionsKeys = Object.keys(validOptions);
+  let queryString = 
+  `
+    SELECT DISTINCT properties.*,  AVG(property_reviews.rating) AS average_rating
+    FROM properties
+    JOIN property_reviews ON properties.id = property_id
+  `;
+
+  if (validOptionsKeys.length > 0) {
+
+
+    for (let index in validOptionsKeys){
+
+      const intIndex = parseInt(index);
+
+      const keyName = validOptionsKeys[index];
+
+      let optionQueryString = "";
+
+      if (intIndex === 0) {
+
+        optionQueryString += `WHERE `;
+
+      } else optionQueryString += `AND `;
+      
+      switch(keyName) {
+        // Add one to index for differce in array indexes and another one because the first index will always bbe used for the limit
+        case 'city': 
+        optionQueryString += `LOWER(city) LIKE concat('%', $${intIndex + 2}::text, '%')
+        `; 
+        queryParams.push(options.city.toLowerCase());
+        break;
+
+        case 'minimum_price_per_night': 
+        optionQueryString += `cost_per_night > $${intIndex + 2}
+        `;
+        queryParams.push(options.minimum_price_per_night * 100);
+        break;
+
+        case 'owner_id':
+          optionQueryString += `owner_id = $${intIndex + 2}
+          `;
+          queryParams.push(options.owner_id);       
+          break;
+
+        case `maximum_price_per_night`:
+        optionQueryString += `cost_per_night < $${intIndex + 2}
+        `;
+        queryParams.push(options.maximum_price_per_night * 100);
+      }
+
+      queryString += optionQueryString;
+
+      
+      }
+     
+  }
+
+
+  queryString += `
+    GROUP BY properties.id
+    `;
+    if (options.minimum_rating) {
+      queryString += `HAVING AVG(property_reviews.rating) >= $${queryParams.push(options.minimum_rating)}::integer`;
+    }
+
+    queryString += `
+    ORDER BY cost_per_night
+    LIMIT $1;
+  `;
+
+  console.log(queryString);
+  console.log(queryParams);
   return pool
   .query(
     queryString, queryParams)
