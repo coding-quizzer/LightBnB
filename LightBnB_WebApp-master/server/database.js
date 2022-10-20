@@ -96,19 +96,36 @@ exports.getAllReservations = getAllReservations;
 
 /**
  * Get all properties.
- * @param {{}} options An object containing query options.
+ * @param {{
+ *  city,
+ *  owner_id,
+ *  minimum_price_per_night,
+ *  maximum_price_per_night,
+ *  minimum_rating
+ * }} options An object containing query options.
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function(options, limit = 10) {
 
+  const queryParams = [options.city.toLowerCase(), options.minimum_price_per_night * 100, options.maximum_price_per_night * 100, options.minimum_rating, limit];
+  
+  let queryString = `SELECT DISTINCT properties.*,  AVG(property_reviews.rating) AS average_rating
+  FROM properties
+  JOIN property_reviews ON properties.id = property_id
+  WHERE LOWER(city) LIKE concat('%', $1::text, '%')
+  AND cost_per_night > $2
+  AND cost_per_night < $3
+  GROUP BY properties.id
+  HAVING AVG(property_reviews.rating) >= $4
+  ORDER BY cost_per_night
+  LIMIT $5;`
   return pool
-    .query(`SELECT * FROM properties LIMIT $1; 
-    ` , [limit])
-    .then(result => {
-      return result.rows;
-    })
-    .catch(err => console.error(err.stack));
+  .query(
+    queryString, queryParams)
+    
+  .then(result => {return result.rows})
+  .catch (err => console.error(err.stack));
 }
 exports.getAllProperties = getAllProperties;
 
