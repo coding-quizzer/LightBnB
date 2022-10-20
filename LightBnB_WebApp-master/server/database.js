@@ -109,11 +109,6 @@ const getAllProperties = function(options, limit = 10) {
       return result.rows;
     })
     .catch(err => console.error(err.stack));
-  // const limitedProperties = {};
-  // for (let i = 1; i <= limit; i++) {
-  //   limitedProperties[i] = properties[i];
-  // }
-  // return Promise.resolve(limitedProperties);
 }
 exports.getAllProperties = getAllProperties;
 
