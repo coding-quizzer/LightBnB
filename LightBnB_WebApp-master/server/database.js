@@ -47,7 +47,6 @@ const getUserWithId = function(id) {
     return data.rows[0];
   })
   .catch(err => console.error(err.stack));
-  return Promise.resolve(users[id]);
 }
 exports.getUserWithId = getUserWithId;
 
