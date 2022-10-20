@@ -26,7 +26,7 @@ const getUserWithEmail = function(email) {
     WHERE email = $1`, [email])
     .then(data => { 
       if(!data.rows[0]) return null;
-      return data.rows;
+      return data.rows[0];
     })
     .catch(err => console.error(err.stack));
 }
@@ -38,6 +38,15 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithId = function(id) {
+  return pool
+  .query(
+    `SELECT * FROM users 
+     WHERE id = $1`, [id])
+  .then(data => {
+    if(!data.rows[0]) return null;
+    return data.rows[0];
+  })
+  .catch(err => console.error(err.stack));
   return Promise.resolve(users[id]);
 }
 exports.getUserWithId = getUserWithId;
